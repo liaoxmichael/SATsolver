@@ -676,7 +676,7 @@ int main(int argc, char *argv[]) { // call this program with */*.cnf
     SAT_problem prob;
     clock_t start, end;
     int file_index = 1;
-    /* FILE *results; // final experiment stuff
+    FILE *results; // final experiment stuff
     results = fopen("results.csv", "a");
     fprintf(results, "file,DPLL output,DPLL time (s),WalkSAT output,WalkSAT time (s),genetic output, genetic time (s)\n");
     while (file_index < argc) {
@@ -720,7 +720,7 @@ int main(int argc, char *argv[]) { // call this program with */*.cnf
         free(prob.clauses);
         file_index++;
     }
-    fclose(results); */
+    fclose(results);
 
     // testing
     //prob = readInFile("CBS/CBS_k3_n100_m403_b10_999.cnf");
@@ -735,7 +735,7 @@ int main(int argc, char *argv[]) { // call this program with */*.cnf
     }
     free(prob.clauses); */
 
-    FILE *results;
+    /* FILE *results;
     results = fopen("results.csv","a");
     fprintf(results, "file,DPLL output,DPLL time (s)\n");
     //fprintf(results, "file,trial,WalkSAT output,WalkSAT time (s),genetic output, genetic time (s)\n");
@@ -758,7 +758,7 @@ int main(int argc, char *argv[]) { // call this program with */*.cnf
         free(prob.clauses);
         file_index++;
     }
-    fclose(results);
+    fclose(results); */
 
     // doing 10 trials per random strategy
     /* FILE *results;
