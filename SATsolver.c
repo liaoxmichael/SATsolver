@@ -146,7 +146,8 @@ int findUnitClause(SAT_problem prob, int *marked_clauses, int *symbols, int *mod
     }
     return 0; // if no unit clause found, return 0
 }
-bool DPLL(SAT_problem prob, int *marked_clauses, int *symbols, int *model) { // recursive call
+bool DPLL(SAT_problem prob, int *marked_clauses, int *symbols, int *model, int *count) { // recursive call
+    (*count)++;
     bool result;
     int *this_symbols = malloc(sizeof(int) * prob.num_variables);
     int *this_marked_clauses = malloc(sizeof(int) * prob.num_clauses);
@@ -155,9 +156,9 @@ bool DPLL(SAT_problem prob, int *marked_clauses, int *symbols, int *model) { // 
     intAdeepCopy(this_marked_clauses, marked_clauses, prob.num_clauses);
     intAdeepCopy(this_model, model, prob.num_variables);
     
-    printf("Symbols: "); printArr(this_symbols, prob.num_variables); // debug
+    /* printf("Symbols: "); printArr(this_symbols, prob.num_variables); // debug
     printf("Marked Clauses: "); printArr(this_marked_clauses, prob.num_clauses); // debug
-    printf("Model: "); printArr(this_model, prob.num_variables); // debug
+    printf("Model: "); printArr(this_model, prob.num_variables); // debug */
    
     for (int i=0; i<prob.num_clauses; i++) { // checking if all clauses are SAT; if one UNSAT, return False
         if (this_marked_clauses[i] == UNDET) { // need to check if this clause is SAT or not
@@ -175,8 +176,8 @@ bool DPLL(SAT_problem prob, int *marked_clauses, int *symbols, int *model) { // 
                 this_marked_clauses[i] = SAT;
             } else if (num_false == num_variables) {
                 this_marked_clauses[i] = UNSAT;
-                printf("Clause %d UNSAT\n", i); //debug
-                printArr(prob.clauses[i], MAX_CLAUSE_LENGTH); //debug
+                // printf("Clause %d UNSAT\n", i); //debug
+                // printArr(prob.clauses[i], MAX_CLAUSE_LENGTH); //debug
                 free(this_symbols);
                 free(this_marked_clauses);
                 free(this_model);
@@ -192,8 +193,8 @@ bool DPLL(SAT_problem prob, int *marked_clauses, int *symbols, int *model) { // 
     bool all_SAT = true;
     for (int i=0; i<prob.num_clauses && all_SAT != false; i++) {
         if (this_marked_clauses[i] != SAT) {
-            printf("Clause %d not SAT, actually %d\n", i, this_marked_clauses[i]); //debug
-            printArr(prob.clauses[i], MAX_CLAUSE_LENGTH); //debug
+            // printf("Clause %d not SAT, actually %d\n", i, this_marked_clauses[i]); //debug
+            // printArr(prob.clauses[i], MAX_CLAUSE_LENGTH); //debug
             all_SAT = false;
         }
     }
@@ -208,8 +209,8 @@ bool DPLL(SAT_problem prob, int *marked_clauses, int *symbols, int *model) { // 
     if (value != 0) { // 0 indicates no symbol found, else a symbol will be returned in its pos/neg form
         this_symbols[GET_INDEX(value)] = 0; // removing symbol from remaining options
         this_model[GET_INDEX(value)] = value; // adding our assignment to the model
-        printf("Pure symbol found: %d\n", value); //debug
-        result = DPLL(prob, this_marked_clauses, this_symbols, this_model); 
+        // printf("Pure symbol found: %d\n", value); //debug
+        result = DPLL(prob, this_marked_clauses, this_symbols, this_model, count); 
         free(this_symbols);
         free(this_marked_clauses);
         free(this_model);
@@ -220,8 +221,8 @@ bool DPLL(SAT_problem prob, int *marked_clauses, int *symbols, int *model) { // 
     if (value != 0) {
         this_symbols[GET_INDEX(value)] = 0; // removing symbol from remaining options
         this_model[GET_INDEX(value)] = value; // adding our assignment to the model
-        printf("Unit clause found: %d\n", value); //debug
-        result = DPLL(prob, this_marked_clauses, this_symbols, this_model); 
+        // printf("Unit clause found: %d\n", value); //debug
+        result = DPLL(prob, this_marked_clauses, this_symbols, this_model, count); 
         free(this_symbols);
         free(this_marked_clauses);
         free(this_model);
@@ -234,7 +235,7 @@ bool DPLL(SAT_problem prob, int *marked_clauses, int *symbols, int *model) { // 
         j++;
     }
     int first = symbols[j];
-    printf("Arbitrarily assigning: %d\n", first); //debug
+    // printf("Arbitrarily assigning: %d\n", first); //debug
     this_symbols[j] = 0;
     this_model[first-1] = first;
     int *model1 = malloc(sizeof(int) * prob.num_variables);
@@ -242,7 +243,7 @@ bool DPLL(SAT_problem prob, int *marked_clauses, int *symbols, int *model) { // 
     this_model[first-1] = -first;
     int *model2 = malloc(sizeof(int) * prob.num_variables);
     intAdeepCopy(model2, this_model, prob.num_variables);
-    result = DPLL(prob, this_marked_clauses, this_symbols, model1) || DPLL(prob, this_marked_clauses, this_symbols, model2);
+    result = DPLL(prob, this_marked_clauses, this_symbols, model1, count) || DPLL(prob, this_marked_clauses, this_symbols, model2, count);
     free(this_symbols);
     free(this_marked_clauses);
     free(this_model);
@@ -252,6 +253,8 @@ bool DPLL(SAT_problem prob, int *marked_clauses, int *symbols, int *model) { // 
 }
 
 bool DPLLSAT(SAT_problem prob) { // returns True if solution, returns False if not
+    int count = 1;
+    int *cptr = &count;
     int *model = malloc(sizeof(int) * prob.num_variables);
     int *symbols = malloc(sizeof(int) * prob.num_variables);
     int *marked_clauses = malloc(sizeof(int) * prob.num_clauses); // 0 for undetermined, -1 for false, 1 for true
@@ -262,10 +265,11 @@ bool DPLLSAT(SAT_problem prob) { // returns True if solution, returns False if n
     for (int j=0; j<prob.num_clauses; j++) {
         marked_clauses[j] = UNDET;
     }
-    bool result = DPLL(prob, marked_clauses, symbols, model);
+    bool result = DPLL(prob, marked_clauses, symbols, model, cptr);
     free(model);
     free(symbols);
     free(marked_clauses);
+    printf("Nodes expanded: %d\n", count);
     return result;
 }
 
@@ -672,7 +676,7 @@ int main(int argc, char *argv[]) { // call this program with */*.cnf
     SAT_problem prob;
     clock_t start, end;
     int file_index = 1;
-    FILE *results; // final experiment stuff
+    /* FILE *results; // final experiment stuff
     results = fopen("results.csv", "a");
     fprintf(results, "file,DPLL output,DPLL time (s),WalkSAT output,WalkSAT time (s),genetic output, genetic time (s)\n");
     while (file_index < argc) {
@@ -716,8 +720,7 @@ int main(int argc, char *argv[]) { // call this program with */*.cnf
         free(prob.clauses);
         file_index++;
     }
-    fclose(results);
-    return 0;
+    fclose(results); */
 
     // testing
     //prob = readInFile("CBS/CBS_k3_n100_m403_b10_999.cnf");
@@ -731,6 +734,31 @@ int main(int argc, char *argv[]) { // call this program with */*.cnf
         free(prob.clauses[i]);
     }
     free(prob.clauses); */
+
+    FILE *results;
+    results = fopen("results.csv","a");
+    fprintf(results, "file,DPLL output,DPLL time (s)\n");
+    //fprintf(results, "file,trial,WalkSAT output,WalkSAT time (s),genetic output, genetic time (s)\n");
+    while (file_index < argc) {
+        prob = readInFile(argv[file_index]);
+        printf("%s:\n", argv[file_index]);
+        //for (int i=0; i<10; i++) {
+            //fprintf(results, "%s,%d,", argv[file_index], i+1);
+            fprintf(results, "%s,", argv[file_index]);
+            printf("Begin DPLL:\n");
+            start = clock();
+            fprintf(results, "%d,", DPLLSAT(prob));
+            end = clock();
+            printf("-----------------------------\n");
+            fprintf(results, "%f,", ((double) (end - start)) / CLOCKS_PER_SEC);
+        //}
+        for (int i=0; i<prob.num_clauses; i++) {
+            free(prob.clauses[i]);
+        }
+        free(prob.clauses);
+        file_index++;
+    }
+    fclose(results);
 
     // doing 10 trials per random strategy
     /* FILE *results;
@@ -763,4 +791,6 @@ int main(int argc, char *argv[]) { // call this program with */*.cnf
         file_index++;
     }
     fclose(results); */
+
+    return 0;
 }
